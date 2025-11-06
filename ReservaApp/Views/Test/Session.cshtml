@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Test Session";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="fas fa-vial"></i> Estado de la Sesión</h2>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Sesión Disponible:</th>
+                    <td>@ViewBag.IsSessionAvailable</td>
+                </tr>
+                <tr>
+                    <th>User ID:</th>
+                    <td>@(ViewBag.UserId ?? "NULL")</td>
+                </tr>
+                <tr>
+                    <th>User Name:</th>
+                    <td>@(ViewBag.UserName ?? "NULL")</td>
+                </tr>
+                <tr>
+                    <th>User Role:</th>
+                    <td>@(ViewBag.UserRole ?? "NULL")</td>
+                </tr>
+            </table>
+
+            <div class="mt-4">
+                <a href="/Test/CreateTestUser" class="btn btn-success">
+                    <i class="fas fa-user-plus"></i> Crear Usuario de Prueba
+                </a>
+                <a href="/Test/LoginTestUser" class="btn btn-info">
+                    <i class="fas fa-sign-in-alt"></i> Login Usuario de Prueba
+                </a>
+                <a href="/Test/CheckDatabase" class="btn btn-warning">
+                    <i class="fas fa-database"></i> Verificar Base de Datos
+                </a>
+                <a href="/Eventos/Index" class="btn btn-primary">
+                    <i class="fas fa-calendar"></i> Ir a Eventos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

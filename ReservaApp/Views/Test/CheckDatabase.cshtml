@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Verificar Base de Datos";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h2><i class="fas fa-database"></i> Estado de la Base de Datos</h2>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert @(ViewBag.TotalUsuarios != null ? "alert-success" : "alert-danger")">
+                    <h4>@ViewBag.Message</h4>
+                    @if (ViewBag.InnerException != null)
+                    {
+                        <p><strong>Error detallado:</strong> @ViewBag.InnerException</p>
+                    }
+                </div>
+            }
+
+            @if (ViewBag.TotalUsuarios != null)
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h3>@ViewBag.TotalUsuarios</h3>
+                                <p>Total Usuarios</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h3>@ViewBag.TotalEventos</h3>
+                                <p>Total Eventos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (ViewBag.Usuarios != null && ViewBag.Usuarios.Count > 0)
+                {
+                    <h4 class="mt-4">Usuarios en el Sistema:</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Activo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var usuario in ViewBag.Usuarios)
+                            {
+                                <tr>
+                                    <td>@usuario.IdUsuario</td>
+                                    <td>@usuario.Nombre</td>
+                                    <td>@usuario.Email</td>
+                                    <td><span class="badge bg-primary">@usuario.Rol</span></td>
+                                    <td>
+                                        @if (usuario.Activo)
+                                        {
+                                            <span class="badge bg-success">Sí</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">No</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+
+            <div class="mt-4">
+                <a href="/Test/CreateTestUser" class="btn btn-success">
+                    <i class="fas fa-user-plus"></i> Crear Usuario de Prueba
+                </a>
+                <a href="/Test/Session" class="btn btn-info">
+                    <i class="fas fa-vial"></i> Verificar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

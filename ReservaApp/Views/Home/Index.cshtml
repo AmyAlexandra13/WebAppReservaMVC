@@ -1,8 +1,300 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@* @{ *@
+@*     ViewData["Title"] = "Home Page"; *@
+@* } *@
+
+@* <div class="text-center"> *@
+@*     <h1 class="display-4">Welcome</h1> *@
+@*     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p> *@
+@* </div> *@
+@{
+    ViewData["Title"] = "Inicio";
+    var userId = Context.Session.GetInt32("UserId");
+    var userName = Context.Session.GetString("UserName");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 1rem;
+        padding: 4rem 2rem;
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+    }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-white {
+        background: white;
+        color: #6366f1;
+    }
+
+        .btn-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+            color: #6366f1;
+        }
+
+    .btn-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+        .btn-outline:hover {
+            background: white;
+            color: #6366f1;
+            transform: translateY(-3px);
+        }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .feature-card p {
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .stats-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .stat-item {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    media (max-width: 768px) {
+        .hero-section h1
+
+    {
+        font-size: 2rem;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+    }
+
+    .hero-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    }
+</style>
+
+<div class="hero-section">
+    @if (userId != null)
+    {
+        <h1>¡Bienvenido de vuelta, @userName! 👋</h1>
+        <p>Gestiona tus eventos y reservas de manera fácil y eficiente</p>
+        <div class="hero-buttons">
+            <a asp-controller="Eventos" asp-action="Index" class="hero-btn btn-white">
+                <i class="fas fa-calendar-check"></i> Ver Mis Eventos
+            </a>
+            <a asp-controller="Eventos" asp-action="Create" class="hero-btn btn-outline">
+                <i class="fas fa-plus-circle"></i> Crear Nuevo Evento
+            </a>
+        </div>
+    }
+    else
+    {
+        <h1>Bienvenido a EventHub 🎉</h1>
+        <p>Tu plataforma para gestionar eventos y reservas de manera profesional</p>
+        <div class="hero-buttons">
+            <a asp-controller="Account" asp-action="Register" class="hero-btn btn-white">
+                <i class="fas fa-user-plus"></i> Registrarse Gratis
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="hero-btn btn-outline">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </a>
+        </div>
+    }
 </div>
+
+<div class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-calendar-plus"></i>
+        </div>
+        <h3>Crea Eventos</h3>
+        <p>Organiza conferencias, talleres, seminarios y todo tipo de eventos de manera sencilla y rápida.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3>Gestiona Reservas</h3>
+        <p>Controla la capacidad, administra cupos y lleva un registro completo de todos los asistentes.</p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Reportes y Estadísticas</h3>
+        <p>Obtén información detallada sobre tus eventos con reportes visuales y estadísticas en tiempo real.</p>
+    </div>
+</div>
+
+@if (userId != null)
+{
+    <div class="stats-section">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">
+            <i class="fas fa-chart-bar"></i> Tus Estadísticas
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="stat-label">Eventos Creados</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="stat-label">Reservas Totales</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-label">Asistentes</div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 0.5rem; text-decoration: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 600;">
+                <i class="fas fa-arrow-right"></i> Ver Dashboard Completo
+            </a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Animaciones de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const hero = document.querySelector('.hero-section');
+            const features = document.querySelectorAll('.feature-card');
+
+            hero.style.opacity = '0';
+            hero.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                hero.style.transition = 'all 0.6s ease';
+                hero.style.opacity = '1';
+                hero.style.transform = 'translateY(0)';
+            }, 100);
+
+            features.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 300 + (index * 100));
+            });
+        });
+    </script>
+}

@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Login Usuario de Prueba";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h2><i class="fas fa-sign-in-alt"></i> Login Usuario de Prueba</h2>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success">
+                    <h4>@ViewBag.Message</h4>
+                    @if (ViewBag.UserId != null)
+                    {
+                        <hr>
+                        <p><strong>User ID:</strong> @ViewBag.UserId</p>
+                        <p><strong>User Name:</strong> @ViewBag.UserName</p>
+                        <p><strong>User Role:</strong> @ViewBag.UserRole</p>
+                    }
+                </div>
+            }
+
+            <div class="mt-4">
+                <a href="/Test/Session" class="btn btn-info">
+                    <i class="fas fa-vial"></i> Verificar Sesión
+                </a>
+                <a href="/Eventos/Index" class="btn btn-success">
+                    <i class="fas fa-calendar"></i> Ir a Eventos
+                </a>
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Ir al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

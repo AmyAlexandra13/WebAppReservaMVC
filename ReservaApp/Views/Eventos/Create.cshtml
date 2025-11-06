@@ -1,0 +1,111 @@
+﻿@model ReservaApp.Models.ViewModels.EventoViewModel
+@{
+    ViewData["Title"] = "Crear Evento";
+}
+
+<div class="form-container">
+    <div class="form-header">
+        <a asp-action="Index" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+        <h2><i class="fas fa-calendar-plus"></i> Crear Nuevo Evento</h2>
+        <p>Completa la información del evento</p>
+    </div>
+
+    <form asp-action="Create" method="post" class="evento-form" id="createEventoForm">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label asp-for="Titulo" class="form-label">
+                    <i class="fas fa-heading"></i> @Html.DisplayNameFor(model => model.Titulo)
+                </label>
+                <input asp-for="Titulo" class="form-control" placeholder="Ej: Conferencia de Tecnología 2025" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label asp-for="Descripcion" class="form-label">
+                    <i class="fas fa-align-left"></i> @Html.DisplayNameFor(model => model.Descripcion)
+                </label>
+                <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Describe tu evento..."></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+                <small class="form-text text-muted">Máximo 1000 caracteres</small>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label asp-for="Fecha" class="form-label">
+                    <i class="fas fa-calendar"></i> @Html.DisplayNameFor(model => model.Fecha)
+                </label>
+                <input asp-for="Fecha" type="datetime-local" class="form-control" />
+                <span asp-validation-for="Fecha" class="text-danger"></span>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label asp-for="Lugar" class="form-label">
+                    <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(model => model.Lugar)
+                </label>
+                <input asp-for="Lugar" class="form-control" placeholder="Ej: Centro de Convenciones" />
+                <span asp-validation-for="Lugar" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label asp-for="Capacidad" class="form-label">
+                    <i class="fas fa-users"></i> @Html.DisplayNameFor(model => model.Capacidad)
+                </label>
+                <input asp-for="Capacidad" type="number" class="form-control" placeholder="Ej: 100" min="1" />
+                <span asp-validation-for="Capacidad" class="text-danger"></span>
+                <small class="form-text text-muted">Número máximo de asistentes</small>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-toggle-on"></i> Estado
+                </label>
+                <div class="form-check form-switch">
+                    <input asp-for="Activo" class="form-check-input" type="checkbox" id="activoSwitch" checked>
+                    <label class="form-check-label" for="activoSwitch">
+                        Evento activo
+                    </label>
+                </div>
+                <small class="form-text text-muted">Los eventos activos son visibles para reservas</small>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Crear Evento
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/evento-form.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Establecer fecha mínima a hoy
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInput = document.querySelector('input[type="datetime-local"]');
+            if (fechaInput) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                fechaInput.min = now.toISOString().slice(0, 16);
+            }
+        });
+    </script>
+}
