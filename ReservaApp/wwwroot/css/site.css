@@ -1,0 +1,555 @@
+/* ============================================ */
+/* ARCHIVO: wwwroot/css/auth.css */
+/* Sistema de Reservas - Estilos de Autenticación */
+/* ============================================ */
+
+:root {
+    --primary-blue: #6D94C5;
+    --secondary-blue: #5A7FA8;
+    --light-blue: #8BB4E8;
+    --dark-blue: #4A6B8E;
+    --accent-blue: #A8C5E8;
+    --gradient-start: #6D94C5;
+    --gradient-end: #5A7FA8;
+    --text-dark: #2c3e50;
+    --text-light: #ffffff;
+    --success: #4CAF50;
+    --danger: #f44336;
+    --warning: #ff9800;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ============================================ */
+/* BACKGROUND ANIMADO */
+/* ============================================ */
+.auth-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(135deg, #6D94C5 0%, #5A7FA8 50%, #4A6B8E 100%);
+}
+
+.auth-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(168, 197, 232, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 180, 232, 0.1) 0%, transparent 50%);
+}
+
+/* ============================================ */
+/* FORMAS FLOTANTES ANIMADAS */
+/* ============================================ */
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: float 20s infinite ease-in-out;
+}
+
+.shape-1 {
+    width: 300px;
+    height: 300px;
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 200px;
+    height: 200px;
+    top: 60%;
+    left: 70%;
+    animation-delay: 5s;
+}
+
+.shape-3 {
+    width: 150px;
+    height: 150px;
+    top: 30%;
+    right: 15%;
+    animation-delay: 10s;
+}
+
+.shape-4 {
+    width: 250px;
+    height: 250px;
+    bottom: 10%;
+    left: 50%;
+    animation-delay: 15s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.05;
+    }
+
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+        opacity: 0.08;
+    }
+
+    66% {
+        transform: translate(-20px, 40px) scale(0.9);
+        opacity: 0.03;
+    }
+}
+
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL */
+/* ============================================ */
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.auth-content {
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================ */
+/* LOGO */
+/* ============================================ */
+.auth-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.8s ease-out;
+}
+
+    .auth-logo i {
+        font-size: 3.5rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        display: block;
+        text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        animation: pulse 2s infinite ease-in-out;
+    }
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.auth-logo h1 {
+    color: var(--text-light);
+    font-size: 2rem;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: 1px;
+}
+
+/* ============================================ */
+/* CARD DE AUTENTICACIÓN */
+/* ============================================ */
+.auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .auth-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+.auth-card-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+    .auth-card-header i {
+        font-size: 3rem;
+        color: var(--primary-blue);
+        margin-bottom: 1rem;
+        display: block;
+        animation: bounce 1s ease-in-out;
+    }
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.auth-card-header h2 {
+    color: var(--text-dark);
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.auth-card-header p {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+}
+
+/* ============================================ */
+/* FORMULARIO */
+/* ============================================ */
+.auth-form {
+    animation: fadeIn 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    color: var(--text-dark);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.9rem;
+}
+
+    .form-label i {
+        color: var(--primary-blue);
+        margin-right: 0.5rem;
+    }
+
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 4px rgba(109, 148, 197, 0.1);
+        background: white;
+        transform: translateY(-2px);
+    }
+
+    .form-control::placeholder {
+        color: #adb5bd;
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--danger);
+    }
+
+    .form-control.is-valid {
+        border-color: var(--success);
+    }
+
+/* ============================================ */
+/* PASSWORD TOGGLE */
+/* ============================================ */
+.password-input-wrapper {
+    position: relative;
+}
+
+    .password-input-wrapper .form-control {
+        padding-right: 45px;
+    }
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 8px;
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+    .password-toggle:hover {
+        color: var(--primary-blue);
+    }
+
+    .password-toggle:focus {
+        outline: none;
+    }
+
+/* ============================================ */
+/* PASSWORD STRENGTH INDICATOR */
+/* ============================================ */
+.password-strength {
+    margin-top: 0.5rem;
+}
+
+.strength-bar {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.strength-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 2px;
+}
+
+    .strength-bar-fill.weak {
+        width: 33%;
+        background: var(--danger);
+    }
+
+    .strength-bar-fill.medium {
+        width: 66%;
+        background: var(--warning);
+    }
+
+    .strength-bar-fill.strong {
+        width: 100%;
+        background: var(--success);
+    }
+
+#strengthText {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* ============================================ */
+/* CHECKBOX */
+/* ============================================ */
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.5rem;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+}
+
+    .form-check-input:checked {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+.form-check-label {
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ============================================ */
+/* BOTONES */
+/* ============================================ */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    border: none;
+    color: var(--text-light);
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(109, 148, 197, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(109, 148, 197, 0.5);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+.btn-block {
+    width: 100%;
+}
+
+/* ============================================ */
+/* FOOTER DEL FORMULARIO */
+/* ============================================ */
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+    .auth-footer p {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .auth-footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+        .auth-footer a:hover {
+            color: var(--secondary-blue);
+            text-decoration: underline;
+        }
+
+/* ============================================ */
+/* ALERTAS */
+/* ============================================ */
+.alert {
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: none;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+.alert-danger {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.text-danger {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .auth-card-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .auth-logo h1 {
+        font-size: 1.75rem;
+    }
+
+    .auth-logo i {
+        font-size: 3rem;
+    }
+
+    .shape {
+        opacity: 0.02;
+    }
+}
+
+@media (max-width: 400px) {
+    .auth-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .auth-card-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .form-control {
+        font-size: 0.95rem;
+        padding: 0.75rem 0.875rem;
+    }
+}
