@@ -1,12 +1,4 @@
-﻿@* @{ *@
-@*     ViewData["Title"] = "Home Page"; *@
-@* } *@
-
-@* <div class="text-center"> *@
-@*     <h1 class="display-4">Welcome</h1> *@
-@*     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p> *@
-@* </div> *@
-@{
+﻿@{
     ViewData["Title"] = "Inicio";
     var userId = Context.Session.GetInt32("UserId");
     var userName = Context.Session.GetString("UserName");
@@ -196,7 +188,7 @@
     }
     else
     {
-        <h1>Bienvenido a EventHub 🎉</h1>
+        <h1>Bienvenido a EventHub</h1>
         <p>Tu plataforma para gestionar eventos y reservas de manera profesional</p>
         <div class="hero-buttons">
             <a asp-controller="Account" asp-action="Register" class="hero-btn btn-white">
