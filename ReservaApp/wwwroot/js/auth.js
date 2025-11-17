@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initializePasswordToggles();
     initializePasswordStrength();
     initializeFormAnimations();
-    initializeFieldValidation();
     initializeParallaxEffect();
 });
 
@@ -24,6 +23,8 @@ function initializePasswordToggles() {
     if (togglePassword && passwordInput && eyeIcon) {
         togglePassword.addEventListener('click', function (e) {
             e.preventDefault();
+            e.stopPropagation();
+
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
 
@@ -45,6 +46,8 @@ function initializePasswordToggles() {
     if (toggleConfirmPassword && confirmPasswordInput && eyeIconConfirm) {
         toggleConfirmPassword.addEventListener('click', function (e) {
             e.preventDefault();
+            e.stopPropagation();
+
             const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             confirmPasswordInput.setAttribute('type', type);
 
@@ -100,14 +103,17 @@ function checkPasswordStrength(password) {
 
     if (strength <= 2) {
         strengthBar.classList.add('weak');
+        strengthBar.style.width = '33%';
         strengthText.textContent = 'Contraseña débil';
         strengthText.style.color = '#f44336';
     } else if (strength <= 4) {
         strengthBar.classList.add('medium');
+        strengthBar.style.width = '66%';
         strengthText.textContent = 'Contraseña media';
         strengthText.style.color = '#ff9800';
     } else {
         strengthBar.classList.add('strong');
+        strengthBar.style.width = '100%';
         strengthText.textContent = 'Contraseña fuerte';
         strengthText.style.color = '#4CAF50';
     }
@@ -125,87 +131,6 @@ function initializeFormAnimations() {
 }
 
 /* ============================================ */
-/* VALIDACIÓN DE CAMPOS EN TIEMPO REAL */
-/* ============================================ */
-function initializeFieldValidation() {
-    const forms = document.querySelectorAll('.auth-form');
-
-    forms.forEach(form => {
-        const inputs = form.querySelectorAll('.form-control');
-
-        inputs.forEach(input => {
-            // Validar cuando el campo pierde el foco
-            input.addEventListener('blur', function () {
-                validateField(this);
-            });
-
-            // Revalidar mientras se escribe si ya hay un error
-            input.addEventListener('input', function () {
-                if (this.classList.contains('is-invalid')) {
-                    validateField(this);
-                }
-            });
-        });
-
-        // Validación final antes de enviar
-        form.addEventListener('submit', function (e) {
-            let isValid = true;
-
-            inputs.forEach(input => {
-                if (!validateField(input)) {
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-    });
-}
-
-function validateField(field) {
-    const value = field.value.trim();
-    const fieldName = field.name || field.id;
-
-    // Limpiar clases previas
-    field.classList.remove('is-invalid', 'is-valid');
-
-    // Validaciones específicas
-    if (fieldName === 'Email' || field.type === 'email') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (value && !emailRegex.test(value)) {
-            field.classList.add('is-invalid');
-            return false;
-        }
-    }
-
-    if (fieldName === 'Password' && value && value.length < 6) {
-        field.classList.add('is-invalid');
-        return false;
-    }
-
-    if (fieldName === 'ConfirmPassword') {
-        const passwordField = document.getElementById('passwordInput');
-        if (passwordField && value !== passwordField.value) {
-            field.classList.add('is-invalid');
-            return false;
-        }
-    }
-
-    if (field.hasAttribute('required') && !value) {
-        field.classList.add('is-invalid');
-        return false;
-    }
-
-    if (value.length > 0) {
-        field.classList.add('is-valid');
-    }
-
-    return true;
-}
-
-/* ============================================ */
 /* EFECTO PARALLAX EN EL FONDO */
 /* ============================================ */
 function initializeParallaxEffect() {
@@ -220,7 +145,6 @@ function initializeParallaxEffect() {
     });
 
     function animate() {
-        // Interpolación suave
         targetX += (mouseX - targetX) * 0.05;
         targetY += (mouseY - targetY) * 0.05;
 
@@ -252,90 +176,35 @@ if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
 }
 
 /* ============================================ */
-/* ANIMACIÓN DE CARGA EN BOTONES */
-/* ============================================ */
-document.querySelectorAll('.btn-primary').forEach(button => {
-    button.addEventListener('click', function (e) {
-        const form = this.closest('form');
-
-        if (form && form.checkValidity()) {
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-
-            // Restaurar el botón después de 3 segundos si algo sale mal
-            setTimeout(() => {
-                if (this.disabled) {
-                    this.disabled = false;
-                    const originalIcon = this.getAttribute('data-original-icon') || 'fa-sign-in-alt';
-                    const originalText = this.getAttribute('data-original-text') || 'Enviar';
-                    this.innerHTML = `<i class="fas ${originalIcon}"></i> ${originalText}`;
-                }
-            }, 3000);
-        }
-    });
-});
-
-/* ============================================ */
 /* ANIMACIÓN DE ENTRADA DE ALERTAS */
 /* ============================================ */
-const alerts = document.querySelectorAll('.alert');
-alerts.forEach(alert => {
-    alert.style.opacity = '0';
-    alert.style.transform = 'translateY(-20px)';
+setTimeout(function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateY(-20px)';
 
-    setTimeout(() => {
-        alert.style.transition = 'all 0.3s ease';
-        alert.style.opacity = '1';
-        alert.style.transform = 'translateY(0)';
-    }, 100);
-});
-
-/* ============================================ */
-/* FUNCIÓN PARA MOSTRAR NOTIFICACIONES */
-/* ============================================ */
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type}`;
-    notification.textContent = message;
-    notification.style.position = 'fixed';
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.zIndex = '9999';
-    notification.style.minWidth = '250px';
-    notification.style.animation = 'slideInRight 0.5s ease';
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.5s ease';
         setTimeout(() => {
-            notification.remove();
-        }, 500);
-    }, 3000);
-}
+            alert.style.transition = 'all 0.3s ease';
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateY(0)';
+        }, 100);
+    });
+}, 100);
 
-// Agregar estilos de animación para notificaciones
+/* ============================================ */
+/* ESTILOS DE ANIMACIÓN */
+/* ============================================ */
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideInRight {
+    @keyframes fadeIn {
         from {
-            transform: translateX(100%);
             opacity: 0;
+            transform: translateY(10px);
         }
         to {
-            transform: translateX(0);
             opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
+            transform: translateY(0);
         }
     }
 `;

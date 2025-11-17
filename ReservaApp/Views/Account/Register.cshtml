@@ -11,14 +11,15 @@
         <p>Únete y comienza a reservar eventos increíbles</p>
     </div>
 
-    <form asp-action="Register" method="post" class="auth-form" id="registerForm">
+    <form asp-action="Register" asp-controller="Account" method="post" class="auth-form" id="registerForm">
+        @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
         <div class="form-group">
             <label asp-for="Nombre" class="form-label">
                 <i class="fas fa-user"></i> Nombre Completo
             </label>
-            <input asp-for="Nombre" class="form-control" placeholder="Juan Pérez" autocomplete="name" />
+            <input asp-for="Nombre" class="form-control" placeholder="Juan Pérez" autocomplete="name" required />
             <span asp-validation-for="Nombre" class="text-danger"></span>
         </div>
 
@@ -26,7 +27,7 @@
             <label asp-for="Email" class="form-label">
                 <i class="fas fa-envelope"></i> Correo Electrónico
             </label>
-            <input asp-for="Email" class="form-control" placeholder="tu@email.com" autocomplete="email" />
+            <input asp-for="Email" class="form-control" placeholder="tu@email.com" autocomplete="email" required />
             <span asp-validation-for="Email" class="text-danger"></span>
         </div>
 
@@ -35,7 +36,7 @@
                 <i class="fas fa-lock"></i> Contraseña
             </label>
             <div class="password-input-wrapper">
-                <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="new-password" id="passwordInput" />
+                <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="new-password" id="passwordInput" required />
                 <button type="button" class="password-toggle" id="togglePassword">
                     <i class="fas fa-eye" id="eyeIcon"></i>
                 </button>
@@ -54,7 +55,7 @@
                 <i class="fas fa-lock"></i> Confirmar Contraseña
             </label>
             <div class="password-input-wrapper">
-                <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" autocomplete="new-password" id="confirmPasswordInput" />
+                <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" autocomplete="new-password" id="confirmPasswordInput" required />
                 <button type="button" class="password-toggle" id="toggleConfirmPassword">
                     <i class="fas fa-eye" id="eyeIconConfirm"></i>
                 </button>
@@ -62,12 +63,12 @@
             <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
             <i class="fas fa-user-plus"></i> Crear Cuenta
         </button>
 
         <div class="auth-footer">
-            <p>¿Ya tienes una cuenta? <a asp-action="Login">Inicia sesión aquí</a></p>
+            <p>¿Ya tienes una cuenta? <a asp-action="Login" asp-controller="Account">Inicia sesión aquí</a></p>
         </div>
     </form>
 </div>
@@ -77,4 +78,26 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/js/auth.js"></script>
+    <script>
+        // Script de debug temporal
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            console.log('Formulario enviándose...');
+            console.log('Datos del formulario:');
+
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+
+            // No prevenir el envío, solo log
+            console.log('El formulario se está enviando ahora...');
+        });
+
+        // Verificar si jQuery validation está funcionando
+        $(document).ready(function() {
+            console.log('jQuery cargado:', typeof $ !== 'undefined');
+            console.log('jQuery Validation cargado:', typeof $.fn.validate !== 'undefined');
+            console.log('jQuery Validation Unobtrusive cargado:', typeof $.validator !== 'undefined');
+        });
+    </script>
 }
