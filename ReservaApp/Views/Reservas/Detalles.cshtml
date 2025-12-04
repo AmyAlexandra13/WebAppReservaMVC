@@ -1,147 +1,155 @@
-﻿@model IEnumerable<ReservaApp.Models.ViewModels.EventoDisponibleViewModel>
+﻿@model ReservaApp.Models.ViewModels.EventoDisponibleViewModel
 @{
-    ViewData["Title"] = "Eventos Disponibles";
+    ViewData["Title"] = "Detalles del Evento";
+    var porcentajeOcupacion = Model.Capacidad > 0 ? ((Model.Capacidad - Model.CuposDisponibles) * 100.0 / Model.Capacidad) : 0;
+    var diasRestantes = (Model.Fecha - DateTime.Now).Days;
 }
 
-<div class="eventos-container">
-    <div class="eventos-header">
-        <div class="header-content">
-            <h1><i class="fas fa-calendar-star"></i> Eventos Disponibles</h1>
-            <p>Encuentra y reserva tu lugar en eventos increíbles</p>
-        </div>
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="fas fa-ticket-alt"></i> Mis Reservas
+<div class="details-container">
+    <div class="details-header">
+        <a asp-action="Eventos" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Volver a Eventos
         </a>
     </div>
 
-    @if (!Model.Any())
-    {
-        <div class="empty-state">
-            <i class="fas fa-calendar-times"></i>
-            <h3>No hay eventos disponibles</h3>
-            <p>No hay eventos activos en este momento. Vuelve pronto para ver nuevas opciones.</p>
-        </div>
-    }
-    else
-    {
-        <!-- Filtros y Búsqueda -->
-        <div class="filters-section">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar eventos por título o lugar..." />
+    <div class="event-details-card">
+        @if (Model.TieneReserva)
+        {
+            <div class="alert alert-success alert-reservado">
+                <i class="fas fa-check-circle"></i>
+                <strong>¡Ya tienes una reserva para este evento!</strong>
+                <span>Has reservado @Model.CuposReservados cupo(s)</span>
             </div>
-            <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="todos">
-                    <i class="fas fa-list"></i> Todos
-                </button>
-                <button class="filter-btn" data-filter="disponibles">
-                    <i class="fas fa-check-circle"></i> Con Cupos
-                </button>
-                <button class="filter-btn" data-filter="reservados">
-                    <i class="fas fa-bookmark"></i> Mis Reservas
-                </button>
+        }
+
+        <div class="event-header">
+            <div class="event-date-large">
+                <div class="date-day">@Model.Fecha.Day</div>
+                <div class="date-month">@Model.Fecha.ToString("MMM").ToUpper()</div>
+                <div class="date-year">@Model.Fecha.Year</div>
+
+                @if (diasRestantes <= 7 && diasRestantes > 0)
+                {
+                    <div class="countdown-badge">
+                        <i class="fas fa-clock"></i> @diasRestantes día(s)
+                    </div>
+                }
+            </div>
+            <div class="event-header-info">
+                <h1 class="event-title">@Model.Titulo</h1>
+                <div class="event-meta">
+                    <span class="badge badge-primary">
+                        <i class="fas fa-calendar-check"></i> Evento Disponible
+                    </span>
+                    @if (Model.CuposDisponibles < 10)
+                    {
+                        <span class="badge badge-warning">
+                            <i class="fas fa-exclamation-triangle"></i> ¡Últimos Cupos!
+                        </span>
+                    }
+                </div>
             </div>
         </div>
 
-        <div class="eventos-grid">
-            @foreach (var evento in Model)
-            {
-                var diasRestantes = (evento.Fecha - DateTime.Now).Days;
-                var porcentajeOcupacion = evento.Capacidad > 0 ? ((evento.Capacidad - evento.CuposDisponibles) * 100.0 / evento.Capacidad) : 0;
-                var claseUrgencia = porcentajeOcupacion >= 80 ? "urgente" : porcentajeOcupacion >= 50 ? "medio" : "";
-
-                <div class="evento-card @(evento.TieneReserva ? "reservado" : "") @claseUrgencia"
-                     data-reservado="@evento.TieneReserva"
-                     data-evento-id="@evento.IdEvento">
-
-                    @if (evento.TieneReserva)
-                    {
-                        <div class="reservado-badge">
-                            <i class="fas fa-check-circle"></i> Reservado
-                        </div>
-                    }
-
-                    @if (diasRestantes <= 3)
-                    {
-                        <div class="urgencia-badge">
-                            <i class="fas fa-clock"></i> ¡Próximo!
-                        </div>
-                    }
-
-                    <div class="card-header">
-                        <div class="event-date">
-                            <div class="date-day">@evento.Fecha.Day</div>
-                            <div class="date-month">@evento.Fecha.ToString("MMM")</div>
-                            <div class="date-year">@evento.Fecha.Year</div>
-                        </div>
-                        <div class="cupos-badge @(evento.CuposDisponibles < 10 ? "pocos-cupos" : "")">
-                            <i class="fas fa-users"></i>
-                            <span>@evento.CuposDisponibles cupos</span>
-                        </div>
+        <div class="event-details-body">
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
-
-                    <div class="card-body">
-                        <h3 class="event-title">@evento.Titulo</h3>
-
-                        <div class="event-info">
-                            <div class="info-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>@evento.Lugar</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-clock"></i>
-                                <span>@evento.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-user-tie"></i>
-                                <span>@evento.NombreOrganizador</span>
-                            </div>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(evento.Descripcion))
-                        {
-                            <p class="event-description">
-                                @(evento.Descripcion.Length > 120 ? evento.Descripcion.Substring(0, 120) + "..." : evento.Descripcion)
-                            </p>
-                        }
-
-                        <div class="capacity-info">
-                            <div class="capacity-bar">
-                                <div class="capacity-fill @(porcentajeOcupacion >= 80 ? "alta" : "")"
-                                     style="width: @porcentajeOcupacion.ToString("F0")%"></div>
-                            </div>
-                            <div class="capacity-text">
-                                <span><strong>@evento.CuposDisponibles</strong> de @evento.Capacidad disponibles</span>
-                                <span class="percentage">@porcentajeOcupacion.ToString("F0")% ocupado</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <a asp-action="Detalles" asp-route-id="@evento.IdEvento" class="btn btn-info btn-block">
-                            <i class="fas fa-info-circle"></i> Ver Detalles
-                        </a>
-
-                        @if (evento.TieneReserva)
-                        {
-                            <span class="btn btn-success btn-block disabled">
-                                <i class="fas fa-check-circle"></i> Ya tienes @evento.CuposReservados cupo(s)
-                            </span>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-primary btn-block btn-reservar"
-                                    data-evento-id="@evento.IdEvento"
-                                    data-evento-titulo="@evento.Titulo"
-                                    data-cupos-disponibles="@evento.CuposDisponibles">
-                                <i class="fas fa-ticket-alt"></i> Reservar Ahora
-                            </button>
-                        }
+                    <div class="detail-content">
+                        <label>Fecha y Hora</label>
+                        <p>@Model.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
+                        <p class="text-muted">@Model.Fecha.ToString("HH:mm")</p>
                     </div>
                 </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="detail-content">
+                        <label>Ubicación</label>
+                        <p>@Model.Lugar</p>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="detail-content">
+                        <label>Organizador</label>
+                        <p>@Model.NombreOrganizador</p>
+                        <p class="text-muted">@Model.EmailOrganizador</p>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="detail-content">
+                        <label>Disponibilidad</label>
+                        <p><strong>@Model.CuposDisponibles</strong> de @Model.Capacidad cupos</p>
+                        <div class="capacity-bar">
+                            <div class="capacity-fill" style="width: @porcentajeOcupacion.ToString("F0")%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Descripcion))
+            {
+                <div class="description-section">
+                    <h3><i class="fas fa-align-left"></i> Descripción del Evento</h3>
+                    <p>@Model.Descripcion</p>
+                </div>
             }
+
+            <div class="additional-info">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-chart-line"></i> Ocupación:</span>
+                    <span class="info-value">@porcentajeOcupacion.ToString("F1")%</span>
+                </div>
+                @if (diasRestantes > 0)
+                {
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-hourglass-half"></i> Tiempo restante:</span>
+                        <span class="info-value">@diasRestantes día(s)</span>
+                    </div>
+                }
+            </div>
         </div>
-    }
+
+        <div class="event-actions">
+            @if (Model.TieneReserva)
+            {
+                <a asp-action="Index" class="btn btn-success btn-lg">
+                    <i class="fas fa-ticket-alt"></i> Ver Mis Reservas
+                </a>
+            }
+            else if (Model.CuposDisponibles > 0)
+            {
+                <button type="button" class="btn btn-primary btn-lg btn-reservar"
+                        data-evento-id="@Model.IdEvento"
+                        data-evento-titulo="@Model.Titulo"
+                        data-cupos-disponibles="@Model.CuposDisponibles">
+                    <i class="fas fa-ticket-alt"></i> Reservar Ahora
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-times-circle"></i> Sin Cupos Disponibles
+                </button>
+            }
+
+            <a asp-action="Eventos" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Ver Otros Eventos
+            </a>
+        </div>
+    </div>
 </div>
 
 <!-- Modal de Reserva -->
@@ -155,7 +163,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h4 id="eventoTitulo" class="mb-3"></h4>
+                <h4 id="eventoTitulo" class="mb-3">@Model.Titulo</h4>
 
                 <div class="form-group">
                     <label for="cantidadCupos" class="form-label">
@@ -163,7 +171,7 @@
                     </label>
                     <input type="number" id="cantidadCupos" class="form-control" value="1" min="1" max="10" />
                     <small class="form-text text-muted">
-                        Cupos disponibles: <span id="cuposDisponibles"></span>
+                        Cupos disponibles: <span id="cuposDisponibles">@Model.CuposDisponibles</span>
                     </small>
                 </div>
 
@@ -185,224 +193,56 @@
 </div>
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/eventos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/evento-details.css" asp-append-version="true" />
     <style>
-        .reservado-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #10b981;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.875rem;
+        .alert-reservado {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-        }
-
-        .urgencia-badge {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: #f59e0b;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-        }
-
-        .cupos-badge {
-            background: #6366f1;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-        }
-
-            .cupos-badge.pocos-cupos {
-                background: #ef4444;
-                animation: pulse 2s infinite;
-            }
-
-        .evento-card.reservado {
-            border: 2px solid #10b981;
-        }
-
-        .evento-card.urgente {
-            border: 2px solid #f59e0b;
-        }
-
-        .filters-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-            .search-box i {
-                position: absolute;
-                left: 1rem;
-                top: 50%;
-                transform: translateY(-50%);
-                color: #9ca3af;
-            }
-
-            .search-box input {
-                width: 100%;
-                padding: 0.75rem 1rem 0.75rem 2.5rem;
-                border: 2px solid #e5e7eb;
-                border-radius: 0.5rem;
-                font-size: 1rem;
-            }
-
-        .filter-buttons {
-            display: flex;
             gap: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
             flex-wrap: wrap;
         }
 
-        .filter-btn {
-            padding: 0.75rem 1.5rem;
-            border: 2px solid #e5e7eb;
-            background: white;
+            .alert-reservado strong {
+                flex: 1;
+                min-width: 200px;
+            }
+
+        .countdown-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem;
             border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-            .filter-btn:hover {
-                border-color: #6366f1;
-                color: #6366f1;
-            }
-
-            .filter-btn.active {
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: white;
-                border-color: transparent;
-            }
-
-        .capacity-fill.alta {
-            background: linear-gradient(90deg, #ef4444, #dc2626);
-        }
-
-        @@keyframes pulse {
-            0%, 100%
-
-        {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.7;
-        }
-
+            text-align: center;
         }
     </style>
 }
 
 @section Scripts {
     <script>
-        let eventoIdSeleccionado = null;
-        let cuposMaximos = 0;
+        let eventoIdSeleccionado = @Model.IdEvento;
+        let cuposMaximos = @Model.CuposDisponibles;
 
         document.addEventListener('DOMContentLoaded', function() {
-            inicializarBusqueda();
-            inicializarFiltros();
-            inicializarBotonesReserva();
-        });
-
-        function inicializarBusqueda() {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function(e) {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const cards = document.querySelectorAll('.evento-card');
-
-                    cards.forEach(card => {
-                        const title = card.querySelector('.event-title').textContent.toLowerCase();
-                        const lugar = card.querySelector('.info-item span')?.textContent.toLowerCase() || '';
-
-                        if (title.includes(searchTerm) || lugar.includes(searchTerm)) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                });
-            }
-        }
-
-        function inicializarFiltros() {
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-
-                    const filter = this.getAttribute('data-filter');
-                    const cards = document.querySelectorAll('.evento-card');
-
-                    cards.forEach(card => {
-                        const tieneReserva = card.getAttribute('data-reservado') === 'True';
-
-                        if (filter === 'todos') {
-                            card.style.display = 'block';
-                        } else if (filter === 'disponibles') {
-                            card.style.display = !tieneReserva ? 'block' : 'none';
-                        } else if (filter === 'reservados') {
-                            card.style.display = tieneReserva ? 'block' : 'none';
-                        }
-                    });
-                });
-            });
-        }
-
-        function inicializarBotonesReserva() {
-            const botonesReservar = document.querySelectorAll('.btn-reservar');
-            botonesReservar.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    eventoIdSeleccionado = this.getAttribute('data-evento-id');
-                    const eventoTitulo = this.getAttribute('data-evento-titulo');
-                    cuposMaximos = parseInt(this.getAttribute('data-cupos-disponibles'));
-
-                    document.getElementById('eventoTitulo').textContent = eventoTitulo;
-                    document.getElementById('cuposDisponibles').textContent = cuposMaximos;
-                    document.getElementById('cantidadCupos').max = Math.min(10, cuposMaximos);
-                    document.getElementById('cantidadCupos').value = 1;
-
+            const btnReservar = document.querySelector('.btn-reservar');
+            if (btnReservar) {
+                btnReservar.addEventListener('click', function() {
                     const modal = new bootstrap.Modal(document.getElementById('reservaModal'));
+                    document.getElementById('cantidadCupos').max = Math.min(10, cuposMaximos);
                     modal.show();
                 });
-            });
+            }
 
             const confirmarBtn = document.getElementById('confirmarReservaBtn');
             if (confirmarBtn) {
                 confirmarBtn.addEventListener('click', confirmarReserva);
             }
-        }
+        });
 
         async function confirmarReserva() {
             const cantidadCupos = parseInt(document.getElementById('cantidadCupos').value);
@@ -461,7 +301,6 @@
                 z-index: 9999;
                 min-width: 300px;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                animation: slideInRight 0.3s ease;
             `;
 
             notification.innerHTML = `
@@ -471,10 +310,7 @@
 
             document.body.appendChild(notification);
 
-            setTimeout(() => {
-                notification.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+            setTimeout(() => notification.remove(), 3000);
         }
     </script>
 
