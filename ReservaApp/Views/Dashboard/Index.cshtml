@@ -1,0 +1,426 @@
+﻿@model IEnumerable<ReservaApp.Models.ViewModels.DashboardReservaViewModel>
+@{
+    ViewData["Title"] = "Dashboard - Administrador";
+    var userName = Context.Session.GetString("UserName");
+}
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1><i class="fas fa-chart-line"></i> Dashboard de Administrador</h1>
+            <p>Bienvenido, @userName - Análisis completo de tus eventos y reservas</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-success" onclick="exportarCSV()">
+                <i class="fas fa-file-excel"></i> Exportar CSV
+            </button>
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-primary">
+                <i class="fas fa-calendar"></i> Gestionar Eventos
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="stats-overview">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@ViewBag.TotalEventos</div>
+                <div class="stat-label">Total Eventos</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-success">
+            <div class="stat-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@ViewBag.TotalReservas</div>
+                <div class="stat-label">Total Reservas</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-info">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@ViewBag.ReservasConfirmadas</div>
+                <div class="stat-label">Confirmadas</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@ViewBag.AsistentesUnicos</div>
+                <div class="stat-label">Asistentes Únicos</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-purple">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@ViewBag.CuposReservados</div>
+                <div class="stat-label">Cupos Reservados</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-teal">
+            <div class="stat-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number">@(ViewBag.CapacidadTotal > 0 ? (ViewBag.CuposReservados * 100 / ViewBag.CapacidadTotal).ToString("F1") : "0")%</div>
+                <div class="stat-label">Ocupación</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="charts-section">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar"></i> Reservas por Estado</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="estadoChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> Top 5 Eventos</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="eventosChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-map-marker-alt"></i> Lugares Populares</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="lugaresChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3><i class="fas fa-filter"></i> Filtros de Búsqueda</h3>
+            <button class="btn btn-sm btn-secondary" onclick="limpiarFiltros()">
+                <i class="fas fa-redo"></i> Limpiar
+            </button>
+        </div>
+
+        <form asp-action="Index" method="get" class="filters-form" id="filtrosForm">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Evento</label>
+                    <select name="evento" class="form-select">
+                        <option value="">Todos los eventos</option>
+                        @foreach (var e in ViewBag.Eventos)
+                        {
+                            <option value="@e.IdEvento" selected="@(ViewBag.FiltroEvento == e.IdEvento.ToString())">
+                                @e.Titulo
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-info-circle"></i> Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="confirmada" selected="@(ViewBag.FiltroEstado == "confirmada")">Confirmada</option>
+                        <option value="pendiente" selected="@(ViewBag.FiltroEstado == "pendiente")">Pendiente</option>
+                        <option value="cancelada" selected="@(ViewBag.FiltroEstado == "cancelada")">Cancelada</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Lugar</label>
+                    <input type="text" name="lugar" class="form-control" placeholder="Buscar lugar..."
+                           value="@ViewBag.FiltroLugar" />
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control"
+                           value="@ViewBag.FiltroFechaInicio" />
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-check"></i> Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control"
+                           value="@ViewBag.FiltroFechaFin" />
+                </div>
+
+                <div class="filter-group filter-actions">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Reservas -->
+    <div class="table-section">
+        <div class="table-header">
+            <h3><i class="fas fa-list"></i> Reservas (@Model.Count())</h3>
+            <div class="table-actions">
+                <input type="text" id="searchTable" class="form-control" placeholder="Buscar en tabla...">
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h4>No hay reservas con los filtros aplicados</h4>
+                <p>Intenta ajustar los criterios de búsqueda</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="reservasTable">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-user"></i> Usuario</th>
+                            <th><i class="fas fa-envelope"></i> Email</th>
+                            <th><i class="fas fa-calendar"></i> Evento</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Lugar</th>
+                            <th><i class="fas fa-clock"></i> Fecha Evento</th>
+                            <th><i class="fas fa-users"></i> Cupos</th>
+                            <th><i class="fas fa-info-circle"></i> Estado</th>
+                            <th><i class="fas fa-calendar-check"></i> Fecha Reserva</th>
+                            <th><i class="fas fa-cog"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reserva in Model)
+                        {
+                            var eventoPasado = reserva.FechaEvento < DateTime.Now;
+                            var estadoClass = reserva.Estado == "confirmada" ? "badge-success" :
+                            reserva.Estado == "pendiente" ? "badge-warning" : "badge-secondary";
+
+                            <tr class="@(eventoPasado ? "evento-pasado" : "")">
+                                <td class="fw-bold">#@reserva.IdReserva</td>
+                                <td>
+                                    <div class="user-info">
+                                        <i class="fas fa-user-circle"></i>
+                                        @reserva.NombreUsuario
+                                    </div>
+                                </td>
+                                <td>@reserva.EmailUsuario</td>
+                                <td>
+                                    <div class="evento-info">
+                                        @reserva.TituloEvento
+                                        @if (!reserva.EventoActivo)
+                                        {
+                                            <span class="badge badge-secondary badge-sm">Inactivo</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>@reserva.LugarEvento</td>
+                                <td>
+                                    <div class="fecha-info">
+                                        @reserva.FechaEvento.ToString("dd/MM/yyyy")
+                                        <small>@reserva.FechaEvento.ToString("HH:mm")</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-info">@reserva.CantidadCupos</span>
+                                </td>
+                                <td>
+                                    <span class="badge @estadoClass">
+                                        @reserva.Estado.ToUpper()
+                                    </span>
+                                </td>
+                                <td>@reserva.FechaReserva.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="verDetalles(@reserva.IdReserva)"
+                                            title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Datos para gráficos - con validación
+        const reservasPorEstado = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ReservasPorEstado ?? new List<object>())) || [];
+        const reservasPorEvento = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ReservasPorEvento ?? new List<object>())) || [];
+        const lugaresPorReservas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.LugaresPorReservas ?? new List<object>())) || [];
+
+        // Función para capitalizar texto de manera segura
+        function capitalizarTexto(texto) {
+            if (!texto || typeof texto !== 'string') return 'Sin datos';
+            return texto.charAt(0).toUpperCase() + texto.slice(1);
+        }
+
+        // Función para truncar texto
+        function truncarTexto(texto, maxLength) {
+            if (!texto || typeof texto !== 'string') return 'Sin nombre';
+            return texto.length > maxLength ? texto.substring(0, maxLength) + '...' : texto;
+        }
+
+        // Gráfico de Estados
+        const estadoCtx = document.getElementById('estadoChart').getContext('2d');
+
+        if (reservasPorEstado && reservasPorEstado.length > 0) {
+            new Chart(estadoCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: reservasPorEstado.map(r => capitalizarTexto(r.estado)),
+                    datasets: [{
+                        data: reservasPorEstado.map(r => r.count || 0),
+                        backgroundColor: ['#10b981', '#f59e0b', '#6b7280'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        } else {
+            // Mostrar mensaje cuando no hay datos
+            estadoCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-pie"></i> No hay datos disponibles</p></div>';
+        }
+
+        // Gráfico de Eventos
+        const eventosCtx = document.getElementById('eventosChart').getContext('2d');
+
+        if (reservasPorEvento && reservasPorEvento.length > 0) {
+            new Chart(eventosCtx, {
+                type: 'bar',
+                data: {
+                    labels: reservasPorEvento.map(r => truncarTexto(r.evento, 20)),
+                    datasets: [{
+                        label: 'Reservas',
+                        data: reservasPorEvento.map(r => r.count || 0),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        } else {
+            eventosCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-bar"></i> No hay datos disponibles</p></div>';
+        }
+
+        // Gráfico de Lugares
+        const lugaresCtx = document.getElementById('lugaresChart').getContext('2d');
+
+        if (lugaresPorReservas && lugaresPorReservas.length > 0) {
+            new Chart(lugaresCtx, {
+                type: 'bar',
+                data: {
+                    labels: lugaresPorReservas.map(r => truncarTexto(r.lugar, 20)),
+                    datasets: [{
+                        label: 'Reservas',
+                        data: lugaresPorReservas.map(r => r.count || 0),
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+        } else {
+            lugaresCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-map-marker-alt"></i> No hay datos disponibles</p></div>';
+        }
+
+        // Búsqueda en tabla
+        document.getElementById('searchTable').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#reservasTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Limpiar filtros
+        function limpiarFiltros() {
+            window.location.href = '/Dashboard/Index';
+        }
+
+        // Exportar CSV
+        function exportarCSV() {
+            const form = document.getElementById('filtrosForm');
+            const params = new URLSearchParams(new FormData(form));
+            window.location.href = `/Dashboard/ExportarCSV?${params.toString()}`;
+        }
+
+        // Ver detalles (implementar según necesidad)
+        function verDetalles(id) {
+            // Puedes redirigir o abrir un modal con más información
+            alert('Ver detalles de reserva #' + id);
+        }
+
+        // Animaciones de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+}
