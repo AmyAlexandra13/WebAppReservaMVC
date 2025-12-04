@@ -17,6 +17,13 @@ namespace ReservaApp.Controllers
             _logger = logger;
         }
 
+        // Método auxiliar para verificar si el usuario es admin
+        private bool IsAdmin()
+        {
+            var userRole = HttpContext.Session.GetString("UserRole");
+            return userRole == "admin";
+        }
+
         // GET: Eventos
         public async Task<IActionResult> Index()
         {
@@ -28,15 +35,15 @@ namespace ReservaApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            IQueryable<Evento> query = _context.Eventos.Include(e => e.IdOrganizadorNavigation);
-
-            // Si no es admin, solo mostrar sus eventos
+            // Solo admin puede acceder a la gestión de eventos
             if (userRole != "admin")
             {
-                query = query.Where(e => e.IdOrganizador == userId.Value);
+                TempData["ErrorMessage"] = "No tienes permisos para acceder a esta sección.";
+                return RedirectToAction("Eventos", "Reservas");
             }
 
-            var eventos = await query
+            var eventos = await _context.Eventos
+                .Include(e => e.IdOrganizadorNavigation)
                 .OrderByDescending(e => e.FechaCreacion)
                 .Select(e => new EventoViewModel
                 {
@@ -63,6 +70,18 @@ namespace ReservaApp.Controllers
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Solo admin puede ver detalles desde esta vista
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Detalles", "Reservas", new { id });
             }
 
             var evento = await _context.Eventos
@@ -102,6 +121,13 @@ namespace ReservaApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Solo admin puede crear eventos
+            if (!IsAdmin())
+            {
+                TempData["ErrorMessage"] = "No tienes permisos para crear eventos.";
+                return RedirectToAction("Eventos", "Reservas");
+            }
+
             var viewModel = new EventoViewModel
             {
                 Fecha = DateTime.Now.AddDays(7),
@@ -122,6 +148,12 @@ namespace ReservaApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Solo admin puede crear eventos
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, message = "No tienes permisos para crear eventos" });
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -133,7 +165,7 @@ namespace ReservaApp.Controllers
                         Fecha = viewModel.Fecha,
                         Lugar = viewModel.Lugar,
                         Capacidad = viewModel.Capacidad,
-                        CuposDisponibles = viewModel.Capacidad, // Inicialmente todos disponibles
+                        CuposDisponibles = viewModel.Capacidad,
                         IdOrganizador = userId.Value,
                         FechaCreacion = DateTime.Now,
                         Activo = viewModel.Activo
@@ -163,19 +195,19 @@ namespace ReservaApp.Controllers
             }
 
             var userId = HttpContext.Session.GetInt32("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+
+            // Solo admin puede editar
+            if (!IsAdmin())
+            {
+                TempData["ErrorMessage"] = "No tienes permisos para editar eventos.";
+                return RedirectToAction("Eventos", "Reservas");
+            }
 
             var evento = await _context.Eventos.FindAsync(id);
 
             if (evento == null)
             {
                 return NotFound();
-            }
-
-            // Verificar permisos: solo el organizador o admin puede editar
-            if (userRole != "admin" && evento.IdOrganizador != userId)
-            {
-                return Forbid();
             }
 
             var viewModel = new EventoViewModel
@@ -202,20 +234,17 @@ namespace ReservaApp.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            // Solo admin puede editar
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, message = "No tienes permisos para editar eventos" });
+            }
 
             var evento = await _context.Eventos.FindAsync(id);
 
             if (evento == null)
             {
                 return NotFound();
-            }
-
-            // Verificar permisos
-            if (userRole != "admin" && evento.IdOrganizador != userId)
-            {
-                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -227,7 +256,6 @@ namespace ReservaApp.Controllers
                     evento.Fecha = viewModel.Fecha;
                     evento.Lugar = viewModel.Lugar;
 
-                    // Ajustar cupos disponibles si cambia la capacidad
                     int cuposReservados = evento.Capacidad - evento.CuposDisponibles;
                     evento.Capacidad = viewModel.Capacidad;
                     evento.CuposDisponibles = viewModel.Capacidad - cuposReservados;
@@ -265,8 +293,11 @@ namespace ReservaApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            // Solo admin puede eliminar
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, message = "No tienes permisos para eliminar eventos" });
+            }
 
             var evento = await _context.Eventos
                 .Include(e => e.Reservas)
@@ -277,13 +308,6 @@ namespace ReservaApp.Controllers
                 return Json(new { success = false, message = "Evento no encontrado" });
             }
 
-            // Verificar permisos
-            if (userRole != "admin" && evento.IdOrganizador != userId)
-            {
-                return Json(new { success = false, message = "No tiene permisos para eliminar este evento" });
-            }
-
-            // Verificar si tiene reservas activas
             if (evento.Reservas.Any(r => r.Estado == "confirmada"))
             {
                 return Json(new { success = false, message = "No se puede eliminar un evento con reservas confirmadas" });
@@ -307,20 +331,17 @@ namespace ReservaApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleActivo(int id)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            // Solo admin puede cambiar estado
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, message = "No tienes permisos para modificar eventos" });
+            }
 
             var evento = await _context.Eventos.FindAsync(id);
 
             if (evento == null)
             {
                 return Json(new { success = false, message = "Evento no encontrado" });
-            }
-
-            // Verificar permisos
-            if (userRole != "admin" && evento.IdOrganizador != userId)
-            {
-                return Json(new { success = false, message = "No tiene permisos para modificar este evento" });
             }
 
             try
@@ -342,16 +363,11 @@ namespace ReservaApp.Controllers
             return _context.Eventos.Any(e => e.IdEvento == id);
         }
 
-        // Agregar este método al EventosController.cs existente
-
-        // GET: api/eventos/{id}/reservas
         [HttpGet("api/eventos/{id}/reservas")]
         public async Task<IActionResult> GetReservas(int id)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-
             // Solo admin puede ver las reservas
-            if (userRole != "admin")
+            if (!IsAdmin())
             {
                 return Forbid();
             }

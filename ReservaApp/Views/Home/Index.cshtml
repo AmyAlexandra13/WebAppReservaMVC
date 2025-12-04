@@ -2,6 +2,7 @@
     ViewData["Title"] = "Inicio";
     var userId = Context.Session.GetInt32("UserId");
     var userName = Context.Session.GetString("UserName");
+    var userRole = Context.Session.GetString("UserRole");
 }
 
 <style>
@@ -176,15 +177,31 @@
     @if (userId != null)
     {
         <h1>¡Bienvenido de vuelta, @userName!</h1>
-        <p>Gestiona tus eventos y reservas de manera fácil y eficiente</p>
-        <div class="hero-buttons">
-            <a asp-controller="Eventos" asp-action="Index" class="hero-btn btn-white">
-                <i class="fas fa-calendar-check"></i> Ver Mis Eventos
-            </a>
-            <a asp-controller="Eventos" asp-action="Create" class="hero-btn btn-outline">
-                <i class="fas fa-plus-circle"></i> Crear Nuevo Evento
-            </a>
-        </div>
+
+        @if (userRole == "admin")
+        {
+            <p>Panel de administración - Gestiona eventos y reservas</p>
+            <div class="hero-buttons">
+                <a asp-controller="Eventos" asp-action="Index" class="hero-btn btn-white">
+                    <i class="fas fa-calendar-check"></i> Gestionar Eventos
+                </a>
+                <a asp-controller="Eventos" asp-action="Create" class="hero-btn btn-outline">
+                    <i class="fas fa-plus-circle"></i> Crear Nuevo Evento
+                </a>
+            </div>
+        }
+        else
+        {
+            <p>Explora eventos y gestiona tus reservas de manera fácil</p>
+            <div class="hero-buttons">
+                <a asp-controller="Reservas" asp-action="Eventos" class="hero-btn btn-white">
+                    <i class="fas fa-calendar-star"></i> Ver Eventos Disponibles
+                </a>
+                <a asp-controller="Reservas" asp-action="Index" class="hero-btn btn-outline">
+                    <i class="fas fa-ticket-alt"></i> Mis Reservas
+                </a>
+            </div>
+        }
     }
     else
     {
@@ -202,32 +219,61 @@
 </div>
 
 <div class="features-grid">
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="fas fa-calendar-plus"></i>
+    @if (userRole == "admin")
+    {
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+            <h3>Crea Eventos</h3>
+            <p>Organiza conferencias, talleres, seminarios y todo tipo de eventos de manera sencilla y rápida.</p>
         </div>
-        <h3>Crea Eventos</h3>
-        <p>Organiza conferencias, talleres, seminarios y todo tipo de eventos de manera sencilla y rápida.</p>
-    </div>
 
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="fas fa-users"></i>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>Gestiona Reservas</h3>
+            <p>Controla la capacidad, administra cupos y lleva un registro completo de todos los asistentes.</p>
         </div>
-        <h3>Gestiona Reservas</h3>
-        <p>Controla la capacidad, administra cupos y lleva un registro completo de todos los asistentes.</p>
-    </div>
 
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="fas fa-chart-line"></i>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Reportes y Estadísticas</h3>
+            <p>Obtén información detallada sobre tus eventos con reportes visuales y estadísticas en tiempo real.</p>
         </div>
-        <h3>Reportes y Estadísticas</h3>
-        <p>Obtén información detallada sobre tus eventos con reportes visuales y estadísticas en tiempo real.</p>
-    </div>
+    }
+    else
+    {
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3>Explora Eventos</h3>
+            <p>Descubre conferencias, talleres, seminarios y todo tipo de eventos disponibles para ti.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h3>Reserva Fácilmente</h3>
+            <p>Reserva tu lugar en eventos de forma rápida y sencilla. Gestiona tus reservas en un solo lugar.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3>Mantente Informado</h3>
+            <p>Recibe actualizaciones sobre tus eventos reservados y nunca te pierdas una oportunidad.</p>
+        </div>
+    }
 </div>
 
-@if (userId != null)
+@if (userRole == "admin")
 {
     <div class="stats-section">
         <h2 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">
