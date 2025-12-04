@@ -104,7 +104,7 @@ namespace ReservaApp.Controllers
 
             var viewModel = new EventoViewModel
             {
-                Fecha = DateTime.Now.AddDays(7), // Por defecto, una semana después
+                Fecha = DateTime.Now.AddDays(7),
                 Activo = true
             };
 
@@ -155,7 +155,6 @@ namespace ReservaApp.Controllers
             return View(viewModel);
         }
 
-        // GET: Eventos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -194,7 +193,6 @@ namespace ReservaApp.Controllers
             return View(viewModel);
         }
 
-        // POST: Eventos/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EventoViewModel viewModel)
@@ -263,7 +261,6 @@ namespace ReservaApp.Controllers
             return View(viewModel);
         }
 
-        // POST: Eventos/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -306,7 +303,6 @@ namespace ReservaApp.Controllers
             }
         }
 
-        // POST: Eventos/ToggleActivo/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleActivo(int id)
@@ -344,6 +340,47 @@ namespace ReservaApp.Controllers
         private bool EventoExists(int id)
         {
             return _context.Eventos.Any(e => e.IdEvento == id);
+        }
+
+        // Agregar este método al EventosController.cs existente
+
+        // GET: api/eventos/{id}/reservas
+        [HttpGet("api/eventos/{id}/reservas")]
+        public async Task<IActionResult> GetReservas(int id)
+        {
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            // Solo admin puede ver las reservas
+            if (userRole != "admin")
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                var reservas = await _context.Reservas
+                    .Include(r => r.IdUsuarioNavigation)
+                    .Where(r => r.IdEvento == id)
+                    .OrderByDescending(r => r.FechaReserva)
+                    .Select(r => new
+                    {
+                        idReserva = r.IdReserva,
+                        nombreUsuario = r.IdUsuarioNavigation.Nombre,
+                        email = r.IdUsuarioNavigation.Email,
+                        cantidadCupos = r.CantidadCupos,
+                        estado = r.Estado,
+                        fechaReserva = r.FechaReserva,
+                        fechaActualizacion = r.FechaActualizacion
+                    })
+                    .ToListAsync();
+
+                return Ok(reservas);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener reservas del evento {EventoId}", id);
+                return StatusCode(500, new { message = "Error al cargar las reservas" });
+            }
         }
     }
 }
