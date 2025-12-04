@@ -1,0 +1,325 @@
+﻿@model IEnumerable<ReservaApp.Models.ViewModels.ReservaViewModel>
+@{
+    ViewData["Title"] = "Mis Reservas";
+    var reservasConfirmadas = Model.Where(r => r.Estado == "confirmada").ToList();
+    var reservasCanceladas = Model.Where(r => r.Estado == "cancelada").ToList();
+}
+
+<div class="reservas-container">
+    <div class="reservas-header">
+        <div class="header-content">
+            <h1><i class="fas fa-ticket-alt"></i> Mis Reservas</h1>
+            <p>Gestiona tus reservas de eventos</p>
+        </div>
+        <a asp-action="Eventos" class="btn btn-primary">
+            <i class="fas fa-calendar-plus"></i> Buscar Eventos
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No tienes reservas</h3>
+            <p>Explora eventos disponibles y haz tu primera reserva</p>
+            <a asp-action="Eventos" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Explorar Eventos
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="reservasTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="confirmadas-tab" data-bs-toggle="tab" data-bs-target="#confirmadas"
+                        type="button" role="tab" aria-controls="confirmadas" aria-selected="true">
+                    <i class="fas fa-check-circle"></i> Confirmadas
+                    <span class="badge bg-success">@reservasConfirmadas.Count</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="canceladas-tab" data-bs-toggle="tab" data-bs-target="#canceladas"
+                        type="button" role="tab" aria-controls="canceladas" aria-selected="false">
+                    <i class="fas fa-times-circle"></i> Canceladas
+                    <span class="badge bg-secondary">@reservasCanceladas.Count</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="todas-tab" data-bs-toggle="tab" data-bs-target="#todas"
+                        type="button" role="tab" aria-controls="todas" aria-selected="false">
+                    <i class="fas fa-list"></i> Todas
+                    <span class="badge bg-primary">@Model.Count()</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="reservasTabContent">
+            <!-- Reservas Confirmadas -->
+            <div class="tab-pane fade show active" id="confirmadas" role="tabpanel" aria-labelledby="confirmadas-tab">
+                @if (reservasConfirmadas.Any())
+                {
+                    <div class="reservas-grid">
+                        @foreach (var reserva in reservasConfirmadas)
+                        {
+                            await Html.RenderPartialAsync("_ReservaCard", reserva);
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-tab-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No tienes reservas confirmadas</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Reservas Canceladas -->
+            <div class="tab-pane fade" id="canceladas" role="tabpanel" aria-labelledby="canceladas-tab">
+                @if (reservasCanceladas.Any())
+                {
+                    <div class="reservas-grid">
+                        @foreach (var reserva in reservasCanceladas)
+                        {
+                            await Html.RenderPartialAsync("_ReservaCard", reserva);
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-tab-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No has cancelado ninguna reserva</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Todas las Reservas -->
+            <div class="tab-pane fade" id="todas" role="tabpanel" aria-labelledby="todas-tab">
+                <div class="reservas-grid">
+                    @foreach (var reserva in Model)
+                    {
+                        await Html.RenderPartialAsync("_ReservaCard", reserva);
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal de Cancelación -->
+<div class="modal fade" id="cancelarModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelarModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Cancelar Reserva
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas cancelar tu reserva para <strong id="eventoNombre"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    Esta acción liberará tus <span id="cuposReservados"></span> cupo(s) para que otros usuarios puedan reservarlos.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> No, Mantener
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmarCancelarBtn">
+                    <i class="fas fa-check"></i> Sí, Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .reservas-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .reservas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-content h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .header-content p {
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .reservas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .empty-state, .empty-tab-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+            .empty-state i, .empty-tab-state i {
+                font-size: 4rem;
+                color: #d1d5db;
+                margin-bottom: 1rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 0.5rem;
+            }
+
+            .empty-state p, .empty-tab-state p {
+                color: #6b7280;
+                margin-bottom: 2rem;
+            }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+            .nav-tabs .nav-link {
+                color: #6b7280;
+                font-weight: 600;
+                border: none;
+                padding: 1rem 1.5rem;
+                transition: all 0.3s ease;
+            }
+
+                .nav-tabs .nav-link:hover {
+                    color: #6366f1;
+                    border-color: transparent;
+                }
+
+                .nav-tabs .nav-link.active {
+                    color: #6366f1;
+                    border-bottom: 3px solid #6366f1;
+                    background: none;
+                }
+
+                .nav-tabs .nav-link .badge {
+                    margin-left: 0.5rem;
+                }
+
+        @@media (max-width: 768px) {
+            .reservas-grid
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        .reservas-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        let reservaIdACancelar = null;
+
+        function confirmarCancelar(id, eventoNombre, cupos) {
+            reservaIdACancelar = id;
+            document.getElementById('eventoNombre').textContent = eventoNombre;
+            document.getElementById('cuposReservados').textContent = cupos;
+
+            const modal = new bootstrap.Modal(document.getElementById('cancelarModal'));
+            modal.show();
+        }
+
+        document.getElementById('confirmarCancelarBtn').addEventListener('click', async function() {
+            if (!reservaIdACancelar) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelando...';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                const response = await fetch(`/Reservas/Cancelar/${reservaIdACancelar}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification(data.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Sí, Cancelar';
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('cancelarModal')).hide();
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al cancelar la reserva', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Sí, Cancelar';
+            }
+        });
+
+        function showNotification(message, type = 'info') {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} alert-dismissible fade show`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            `;
+
+            notification.innerHTML = `
+                <i class="fas ${icon}"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        window.confirmarCancelar = confirmarCancelar;
+    </script>
+
+    @Html.AntiForgeryToken()
+}

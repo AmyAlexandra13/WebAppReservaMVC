@@ -1,0 +1,266 @@
+﻿@model ReservaApp.Models.ViewModels.ReservaViewModel
+@{
+    var estadoClass = Model.Estado == "confirmada" ? "confirmada" : "cancelada";
+    var estadoBadge = Model.Estado == "confirmada" ? "badge-success" : "badge-secondary";
+    var estadoIcon = Model.Estado == "confirmada" ? "fa-check-circle" : "fa-times-circle";
+    var eventoPasado = Model.FechaEvento < DateTime.Now;
+    var diasRestantes = (Model.FechaEvento - DateTime.Now).Days;
+}
+
+<div class="reserva-card @estadoClass @(eventoPasado ? "evento-pasado" : "")">
+    <!-- Header con Estado -->
+    <div class="reserva-header">
+        <span class="badge @estadoBadge">
+            <i class="fas @estadoIcon"></i> @Model.Estado.ToUpper()
+        </span>
+        @if (!eventoPasado && diasRestantes <= 3 && Model.Estado == "confirmada")
+        {
+            <span class="badge badge-warning">
+                <i class="fas fa-clock"></i> ¡Próximo!
+            </span>
+        }
+    </div>
+
+    <!-- Fecha del Evento -->
+    <div class="reserva-fecha">
+        <div class="fecha-icon">
+            <i class="fas fa-calendar"></i>
+        </div>
+        <div class="fecha-info">
+            <div class="fecha-principal">@Model.FechaEvento.ToString("dd MMM yyyy")</div>
+            <div class="fecha-hora">@Model.FechaEvento.ToString("HH:mm")</div>
+            @if (!eventoPasado && diasRestantes >= 0 && Model.Estado == "confirmada")
+            {
+                <div class="dias-restantes">
+                    <i class="fas fa-hourglass-half"></i>
+                    @if (diasRestantes == 0)
+                    {
+                        <span>¡Hoy!</span>
+                    }
+                    else if (diasRestantes == 1)
+                    {
+                        <span>Mañana</span>
+                    }
+                    else
+                    {
+                        <span>En @diasRestantes días</span>
+                    }
+                </div>
+            }
+            @if (eventoPasado)
+            {
+                <div class="dias-restantes pasado">
+                    <i class="fas fa-check"></i> Evento finalizado
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Información del Evento -->
+    <div class="reserva-body">
+        <h3 class="evento-titulo">@Model.TituloEvento</h3>
+
+        <div class="evento-detalles">
+            <div class="detalle-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>@Model.LugarEvento</span>
+            </div>
+            <div class="detalle-item">
+                <i class="fas fa-users"></i>
+                <span>@Model.CantidadCupos cupo(s) reservado(s)</span>
+            </div>
+            <div class="detalle-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Reservado: @Model.FechaReserva.ToString("dd/MM/yyyy")</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="reserva-footer">
+        @if (Model.Estado == "confirmada" && !eventoPasado)
+        {
+            <button type="button" class="btn btn-danger btn-sm"
+                    onclick="confirmarCancelar(@Model.IdReserva, '@Model.TituloEvento', @Model.CantidadCupos)">
+                <i class="fas fa-times-circle"></i> Cancelar Reserva
+            </button>
+        }
+        else if (eventoPasado)
+        {
+            <span class="text-muted">
+                <i class="fas fa-info-circle"></i> Evento finalizado
+            </span>
+        }
+        else
+        {
+            <span class="text-muted">
+                <i class="fas fa-ban"></i> Reserva cancelada
+            </span>
+        }
+    </div>
+</div>
+
+<style>
+    .reserva-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border-left: 4px solid #6366f1;
+    }
+
+        .reserva-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .reserva-card.confirmada {
+            border-left-color: #10b981;
+        }
+
+        .reserva-card.cancelada {
+            border-left-color: #9ca3af;
+            opacity: 0.7;
+        }
+
+        .reserva-card.evento-pasado {
+            border-left-color: #6b7280;
+        }
+
+    .reserva-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .badge-secondary {
+        background: #6b7280;
+        color: white;
+    }
+
+    .badge-warning {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .reserva-fecha {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 0.75rem;
+    }
+
+    .fecha-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .fecha-info {
+        flex: 1;
+    }
+
+    .fecha-principal {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .fecha-hora {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .dias-restantes {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.25rem;
+        color: #6366f1;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+        .dias-restantes.pasado {
+            color: #6b7280;
+        }
+
+    .reserva-body {
+        margin-bottom: 1.5rem;
+    }
+
+    .evento-titulo {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
+
+    .evento-detalles {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .detalle-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+        .detalle-item i {
+            color: #9ca3af;
+            width: 1rem;
+        }
+
+    .reserva-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    @@media (max-width: 768px) {
+        .reserva-card
+
+    {
+        padding: 1rem;
+    }
+
+    .evento-titulo {
+        font-size: 1rem;
+    }
+
+    }
+</style>

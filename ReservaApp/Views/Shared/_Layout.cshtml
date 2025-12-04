@@ -121,16 +121,36 @@
 
                         @if (Context.Session.GetInt32("UserId") != null)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Eventos" asp-action="Index">
-                                    <i class="fas fa-calendar-check"></i> Mis Eventos
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Reservas" asp-action="Index">
-                                    <i class="fas fa-ticket-alt"></i> Mis Reservas
-                                </a>
-                            </li>
+                            var userRole = Context.Session.GetString("UserRole");
+
+                            @if (userRole == "admin")
+                            {
+                                <!-- Menú para Admin -->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Eventos" asp-action="Index">
+                                        <i class="fas fa-calendar-check"></i> Gestionar Eventos
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <!-- Menú para Usuario Regular -->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservas" asp-action="Eventos">
+                                        <i class="fas fa-calendar-star"></i> Eventos Disponibles
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservas" asp-action="Index">
+                                        <i class="fas fa-ticket-alt"></i> Mis Reservas
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Eventos" asp-action="Index">
+                                        <i class="fas fa-calendar-plus"></i> Mis Eventos
+                                    </a>
+                                </li>
+                            }
                         }
                         else
                         {
