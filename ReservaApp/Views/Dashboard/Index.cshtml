@@ -208,7 +208,6 @@
                             <th><i class="fas fa-users"></i> Cupos</th>
                             <th><i class="fas fa-info-circle"></i> Estado</th>
                             <th><i class="fas fa-calendar-check"></i> Fecha Reserva</th>
-                            <th><i class="fas fa-cog"></i> Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -252,12 +251,6 @@
                                     </span>
                                 </td>
                                 <td>@reserva.FechaReserva.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="verDetalles(@reserva.IdReserva)"
-                                            title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
                             </tr>
                         }
                     </tbody>
@@ -274,12 +267,33 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // Datos para gráficos - con validación
-        const reservasPorEstado = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ReservasPorEstado ?? new List<object>())) || [];
-        const reservasPorEvento = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ReservasPorEvento ?? new List<object>())) || [];
-        const lugaresPorReservas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.LugaresPorReservas ?? new List<object>())) || [];
+        // Parsear datos JSON desde ViewBag
+        let reservasPorEstado = [];
+        let reservasPorEvento = [];
+        let lugaresPorReservas = [];
 
-        // Función para capitalizar texto de manera segura
+        try {
+            reservasPorEstado = JSON.parse('@Html.Raw(ViewBag.ReservasPorEstado ?? "[]")');
+            console.log('Reservas por estado:', reservasPorEstado);
+        } catch (e) {
+            console.error('Error parseando reservasPorEstado:', e);
+        }
+
+        try {
+            reservasPorEvento = JSON.parse('@Html.Raw(ViewBag.ReservasPorEvento ?? "[]")');
+            console.log('Reservas por evento:', reservasPorEvento);
+        } catch (e) {
+            console.error('Error parseando reservasPorEvento:', e);
+        }
+
+        try {
+            lugaresPorReservas = JSON.parse('@Html.Raw(ViewBag.LugaresPorReservas ?? "[]")');
+            console.log('Lugares por reservas:', lugaresPorReservas);
+        } catch (e) {
+            console.error('Error parseando lugaresPorReservas:', e);
+        }
+
+        // Función para capitalizar texto
         function capitalizarTexto(texto) {
             if (!texto || typeof texto !== 'string') return 'Sin datos';
             return texto.charAt(0).toUpperCase() + texto.slice(1);
@@ -292,103 +306,108 @@
         }
 
         // Gráfico de Estados
-        const estadoCtx = document.getElementById('estadoChart').getContext('2d');
-
-        if (reservasPorEstado && reservasPorEstado.length > 0) {
-            new Chart(estadoCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: reservasPorEstado.map(r => capitalizarTexto(r.estado)),
-                    datasets: [{
-                        data: reservasPorEstado.map(r => r.count || 0),
-                        backgroundColor: ['#10b981', '#f59e0b', '#6b7280'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
+        const estadoCtx = document.getElementById('estadoChart');
+        if (estadoCtx) {
+            if (reservasPorEstado && reservasPorEstado.length > 0) {
+                new Chart(estadoCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: reservasPorEstado.map(r => capitalizarTexto(r.estado)),
+                        datasets: [{
+                            data: reservasPorEstado.map(r => r.count || 0),
+                            backgroundColor: ['#10b981', '#f59e0b', '#6b7280'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
                     }
-                }
-            });
-        } else {
-            // Mostrar mensaje cuando no hay datos
-            estadoCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-pie"></i> No hay datos disponibles</p></div>';
+                });
+            } else {
+                estadoCtx.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-pie"></i> No hay datos de reservas aún</p></div>';
+            }
         }
 
         // Gráfico de Eventos
-        const eventosCtx = document.getElementById('eventosChart').getContext('2d');
-
-        if (reservasPorEvento && reservasPorEvento.length > 0) {
-            new Chart(eventosCtx, {
-                type: 'bar',
-                data: {
-                    labels: reservasPorEvento.map(r => truncarTexto(r.evento, 20)),
-                    datasets: [{
-                        label: 'Reservas',
-                        data: reservasPorEvento.map(r => r.count || 0),
-                        backgroundColor: '#6366f1',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+        const eventosCtx = document.getElementById('eventosChart');
+        if (eventosCtx) {
+            if (reservasPorEvento && reservasPorEvento.length > 0) {
+                new Chart(eventosCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: reservasPorEvento.map(r => truncarTexto(r.evento, 20)),
+                        datasets: [{
+                            label: 'Reservas',
+                            data: reservasPorEvento.map(r => r.count || 0),
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8
+                        }]
                     },
-                    scales: {
-                        y: { beginAtZero: true }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
                     }
-                }
-            });
-        } else {
-            eventosCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-bar"></i> No hay datos disponibles</p></div>';
+                });
+            } else {
+                eventosCtx.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-chart-bar"></i> No hay eventos con reservas confirmadas</p></div>';
+            }
         }
 
         // Gráfico de Lugares
-        const lugaresCtx = document.getElementById('lugaresChart').getContext('2d');
-
-        if (lugaresPorReservas && lugaresPorReservas.length > 0) {
-            new Chart(lugaresCtx, {
-                type: 'bar',
-                data: {
-                    labels: lugaresPorReservas.map(r => truncarTexto(r.lugar, 20)),
-                    datasets: [{
-                        label: 'Reservas',
-                        data: lugaresPorReservas.map(r => r.count || 0),
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+        const lugaresCtx = document.getElementById('lugaresChart');
+        if (lugaresCtx) {
+            if (lugaresPorReservas && lugaresPorReservas.length > 0) {
+                new Chart(lugaresCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: lugaresPorReservas.map(r => truncarTexto(r.lugar, 20)),
+                        datasets: [{
+                            label: 'Reservas',
+                            data: lugaresPorReservas.map(r => r.count || 0),
+                            backgroundColor: '#8b5cf6',
+                            borderRadius: 8
+                        }]
                     },
-                    scales: {
-                        x: { beginAtZero: true }
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { beginAtZero: true }
+                        }
                     }
-                }
-            });
-        } else {
-            lugaresCtx.canvas.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-map-marker-alt"></i> No hay datos disponibles</p></div>';
+                });
+            } else {
+                lugaresCtx.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;"><p><i class="fas fa-map-marker-alt"></i> No hay datos de lugares disponibles</p></div>';
+            }
         }
 
         // Búsqueda en tabla
-        document.getElementById('searchTable').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#reservasTable tbody tr');
+        const searchTable = document.getElementById('searchTable');
+        if (searchTable) {
+            searchTable.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#reservasTable tbody tr');
 
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
             });
-        });
+        }
 
         // Limpiar filtros
         function limpiarFiltros() {
@@ -400,12 +419,6 @@
             const form = document.getElementById('filtrosForm');
             const params = new URLSearchParams(new FormData(form));
             window.location.href = `/Dashboard/ExportarCSV?${params.toString()}`;
-        }
-
-        // Ver detalles (implementar según necesidad)
-        function verDetalles(id) {
-            // Puedes redirigir o abrir un modal con más información
-            alert('Ver detalles de reserva #' + id);
         }
 
         // Animaciones de entrada

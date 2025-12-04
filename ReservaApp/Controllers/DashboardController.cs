@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ReservaApp.Data;
 using ReservaApp.Models.ViewModels;
+using System.Text.Json;
 
 namespace ReservaApp.Controllers
 {
@@ -129,17 +130,17 @@ namespace ReservaApp.Controllers
                 .Where(e => e.IdOrganizador == userId.Value)
                 .SumAsync(e => (int?)e.Capacidad) ?? 0;
 
-            // Estadísticas para gráficos
+            // Estadísticas para gráficos - CORREGIDO
             var reservasPorEstado = await statsQuery
                 .GroupBy(r => r.Estado)
-                .Select(g => new { Estado = g.Key, Count = g.Count() })
+                .Select(g => new { estado = g.Key ?? "Sin estado", count = g.Count() })
                 .ToListAsync();
 
             var reservasPorEvento = await statsQuery
                 .Where(r => r.Estado == "confirmada")
                 .GroupBy(r => r.IdEventoNavigation.Titulo)
-                .Select(g => new { Evento = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
+                .Select(g => new { evento = g.Key ?? "Sin título", count = g.Count() })
+                .OrderByDescending(x => x.count)
                 .Take(5)
                 .ToListAsync();
 
@@ -147,8 +148,8 @@ namespace ReservaApp.Controllers
             var lugaresPorReservas = await statsQuery
                 .Where(r => r.Estado == "confirmada")
                 .GroupBy(r => r.IdEventoNavigation.Lugar)
-                .Select(g => new { Lugar = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
+                .Select(g => new { lugar = g.Key ?? "Sin lugar", count = g.Count() })
+                .OrderByDescending(x => x.count)
                 .Take(5)
                 .ToListAsync();
 
@@ -159,9 +160,22 @@ namespace ReservaApp.Controllers
             ViewBag.AsistentesUnicos = asistentesUnicos;
             ViewBag.CuposReservados = cuposReservados;
             ViewBag.CapacidadTotal = ingresosTotales;
-            ViewBag.ReservasPorEstado = reservasPorEstado;
-            ViewBag.ReservasPorEvento = reservasPorEvento;
-            ViewBag.LugaresPorReservas = lugaresPorReservas;
+
+            // Serializar con nombres de propiedades en minúsculas
+            ViewBag.ReservasPorEstado = JsonSerializer.Serialize(reservasPorEstado, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            ViewBag.ReservasPorEvento = JsonSerializer.Serialize(reservasPorEvento, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            ViewBag.LugaresPorReservas = JsonSerializer.Serialize(lugaresPorReservas, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
             // Mantener filtros en la vista
             ViewBag.FiltroEvento = evento;
